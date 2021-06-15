@@ -1,6 +1,6 @@
 <?php
 $code = 101;
-$msg = "No record Found";
+$msg = "Record List Successfully";
 $output = array();
 
 $servername = "localhost";
@@ -8,32 +8,30 @@ $username = "root";
 $password = "";
 $dbname = "start_war";
 $conn = new mysqli($servername, $username, $password, $dbname);
+$uriSegments = explode("/", parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+$id = isset($uriSegments[3]) ? $uriSegments[3]:'';
+// echo '<pre>';print_r($uriSegments[3]);  die;
 if ($conn->connect_error) {
     // die("Connection failed: " . $conn->connect_error);
     $msg = "Connection failed: " . $conn->connect_error;
 }
 
-if (isset($_GET['action']) && !empty($_GET['action'])) {
-    $action = $_GET['action'];
+// if (isset($_GET['action']) && !empty($_GET['action'])) {
+    $action = isset($_GET['action']) ? $_GET['action']:'';
 
     // API for get single Record
-    if ($action == "single") {
-        $id = (isset($_POST['id']))?$_POST['id']:"";
-        if(!empty($_POST['id'])){
-          $sql = "SELECT s.*, c.name as category_name FROM `start_war_ship` s LEFT JOIN starship_category c ON c.id = s.category_id WHERE s.id = '".$id."'";
-            $result = $conn->query($sql);
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    $output = $row;
-                }
-                $code = 100;
-                $msg = "Record List Successfully";
+    if (!empty($id)) {
+        $sql = "SELECT s.*, c.name as category_name FROM `start_war_ship` s LEFT JOIN starship_category c ON c.id = s.category_id WHERE s.id = '".$id."'";
+        $result = $conn->query($sql);
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $output = $row;
             }
-        }else{
-          $msg = "Please pass ID";
+            $code = 100;
+            $msg = "Record List Successfully";
         }
     } 
-    elseif($action == "list") {
+    else{
         // API for get list all Record
         $output = array();
         $category = array();
@@ -62,9 +60,10 @@ if (isset($_GET['action']) && !empty($_GET['action'])) {
           'starship' => $ships,
         );
     }
-}else{
-  $msg = "Please pass action";
-}
+
+// }else{
+//   $msg = "Please pass action";
+// }
 
 
 $response = array(
